@@ -1,9 +1,9 @@
-@import "./variable";
+@import './variable';
 // Node modules
-@import "~codemirror/lib/codemirror.css";
-@import "./code-editor-override";
-@import "./global";
-@import "./header";
+@import '~codemirror/lib/codemirror.css';
+@import './code-editor-override';
+@import './global';
+@import './header';
 
 .registerTable {
   text-align: center;
@@ -64,7 +64,7 @@
   grid-column-end: -1;
 }
 
-.assembly-simulator-header{
+.assembly-simulator-header {
   display: flex;
   justify-content: space-between;
 }
@@ -93,6 +93,39 @@
   background-color: $error-color;
 }
 
+.sidebar {
+  height: 100%;
+  width: $sidebar-width;
+  position: absolute;
+  z-index: 26;
+  background-color: rgb(40, 40, 40);
+  overflow-x: hidden;
+  border-right: 2px solid $body-text-color;
+  transition: width 0.5s;
+
+  padding: 0px 10px;
+}
+
+.sidebar-closed {
+  width: 0px;
+  padding: 0px;
+  border: none;
+}
+
+.sidebar-item-title {
+  font-size: 18px;
+}
+
+.sidebar-item-slider {
+  display: flex;
+  justify-content: space-between;
+  font-size: 16px;
+}
+
+.sidebar-item-slider input[type="range"] {
+  width: 70%;
+}
+
 .save-code-overlay {
   height: 30%;
   width: 20%;
@@ -101,15 +134,15 @@
   flex-direction: column;
   align-items: center;
 
-  position: fixed; 
-  
-  top: 20%; 
+  position: fixed;
+
+  top: 20%;
   left: 40%;
 
   border-radius: 3%;
 
-  background-color: #181b2e; 
-  z-index: 1; 
+  background-color: #181b2e;
+  z-index: 1;
 }
 
 .save-button {
@@ -149,7 +182,7 @@
   outline: none;
 }
 
-.save-dialogue-box-close-button  {
+.save-dialogue-box-close-button {
   position: relative;
   top: 0%;
   left: 45%;

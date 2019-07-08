@@ -9,6 +9,7 @@ import EditorComp from "./components/EditorComp";
 import Prints from "./components/Prints";
 import CustomTable from "./components/CustomTable";
 import LoadButton from "./components/LoadButton";
+import Sidebar from "./components/Sidebar";
 import Stack from "./components/Stack";
 import SaveCodeDialogueBox from "./components/SaveCodeDialogueBox";
 
@@ -32,7 +33,8 @@ class App extends Component {
       highlightingClass: highlightingClass,
       isSidebarOpen: false,
       codeStatus: successStatus,
-      saveCodeDialogueEnabled: false
+      maxLinesToExecute: 100,
+      isDialogueVisible : false
     };
     this.executeCode = this.executeCode.bind(this);
     this.executeStepWise = this.executeStepWise.bind(this);
@@ -44,11 +46,14 @@ class App extends Component {
     this.setHasChangedPropertyForChangedRows = this.setHasChangedPropertyForChangedRows.bind(this);
     this.openMenu = this.openMenu.bind(this);
     this.saveCurrentCode = this.saveCurrentCode.bind(this);
+    this.loadCode = this.loadCode.bind(this);
+
+    this.maxLinesToExecuteSliderRef = React.createRef();
     this.toggleSaveCodeDialogue = this.toggleSaveCodeDialogue.bind(this);
   }
 
   openMenu() {
-    this.setState({isSidebarOpen: !this.state.isSidebarOpen})
+    this.setState({isSidebarOpen: !this.state.isSidebarOpen});
   }
 
   render() {
@@ -63,11 +68,12 @@ class App extends Component {
               </div>
               <div className="save-load-container">
                 <button className="save-button" onClick= {this.toggleSaveCodeDialogue} >Save</button>
-                <LoadButton className="link-action" handleCodeEdit={this.handleCodeEdit}/>
+                <LoadButton className="link-action" loadCode={this.loadCode}/>
               </div>
             </div>
             <div className="code-container">
-              <EditorComp initialCode={this.state.editor} highlightLine={this.state.highlightLine}
+            <Sidebar className="sidebar" isOpened={this.state.isSidebarOpen} sliderRef={this.maxLinesToExecuteSliderRef}/>
+              <EditorComp initialCode={this.getInitialCode()} highlightLine={this.state.highlightLine}
                           highlightingClass={this.state.highlightingClass} onEdit={this.handleCodeEdit}/>
               <div className="actions">
                 <button onClick={this.executeStepWise} disabled={this.state.isExecutingStepWise}>Step Into</button>
@@ -87,29 +93,32 @@ class App extends Component {
                            onClickOfRow={this.showStackForLine}/>
               <Stack stack={this.state.stack}/>
             </div>
-            {this.state.saveCodeDialogueEnabled ? (
-              <SaveCodeDialogueBox toggleDisplay= {this.toggleSaveCodeDialogue}
-                                   editor= {this.state.editor}/>
-            ) : (
-              ""
-            )}
+            <SaveCodeDialogueBox display={this.state.isDialogueVisible} toggleDisplay={this.toggleSaveCodeDialogue} editor= {this.state.editor}/>
           </div>
         
         </div>
     );
   }
 
+  persistCode(code) {
+    let editor = helpers.replaceInString(code, "\n", "{{{{,}}}}");
+    editor = helpers.replaceInString(editor, ";", "{{{{:}}}}");
+    document.cookie = "assemblyCode=" + editor;
+  }
+
+  loadCode(code){
+    this.persistCode(code);
+    this.handleCodeEdit(code);  
+  }
+
   toggleSaveCodeDialogue(){
-    this.setState((state)=>(
-      {saveCodeDialogueEnabled: !state.saveCodeDialogueEnabled}
-      )
-    )}
+    const display = !this.state.isDialogueVisible;
+    this.setState({isDialogueVisible : display})
+  }
 
   saveCurrentCode() {
     let editor = this.state.editor;
-    editor = helpers.replaceInString(editor, "\n", "{{{{,}}}}");
-    editor = helpers.replaceInString(editor, ";", "{{{{:}}}}");
-    document.cookie = "assemblyCode=" + editor;
+    this.persistCode(editor);
   }
   
   getInitialCode() {
@@ -127,7 +136,6 @@ class App extends Component {
 
   handleCodeEdit(editor) {
     this.setState({editor});
-    this.saveCurrentCode();
     this.clearState();
     this.setAsNotExecutingStepWise();
   }
@@ -158,6 +166,7 @@ class App extends Component {
     let numberedCode = lines.map((l, i) => `${(i + 1) * 10} ${l.trim()}`).join("\n");
     let machine = this.state.machine;
     try {
+      machine.setMaxLinesToExecute(this.maxLinesToExecuteSliderRef.current.value);
       machine.load(numberedCode);
       machine.execute();
       this.setAsNotExecutingStepWise();
